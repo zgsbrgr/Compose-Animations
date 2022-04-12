@@ -1,24 +1,19 @@
 package com.zgsbrgr.compose.anim
 
-import android.os.Bundle
 import android.util.Log
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -30,12 +25,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.zgsbrgr.compose.anim.ui.Wordle
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -122,40 +116,30 @@ fun MainScreen(navController: NavController) {
         Animatable(0f)
     }
 
-    val leftFloatingOffsetX = remember {
-        Animatable(screenWidthInPx)
+    val buttonSizeInPx = with(LocalDensity.current) {
+        (65/2).dp.toPx()
     }
 
-    val offsetYInPx = with(LocalDensity.current) {
-        200.dp.toPx()
-    }
-    val leftFloatingOffsetY = remember {
-        Animatable(screenHeightInPx - offsetYInPx - screenHeightInPx/4)
+    val headerHeightInPx = with(LocalDensity.current) {
+        (150/2).dp.toPx()
     }
 
-    val bottomOffsetYInPx = with(LocalDensity.current) {
-        230.dp.toPx()
-    }
-    val bottomFloatingOffsetY = remember {
-        Animatable(screenHeightInPx + bottomOffsetYInPx)
-    }
+
 
     var menuState by remember {
         mutableStateOf(ViewSate.Closed)
     }
 
-    var floatingMenuState by remember {
-        mutableStateOf(ViewSate.Closed)
-    }
 
     val backgroundColor: Color by animateColorAsState(
-        if(floatingMenuState == ViewSate.Open) Color.Black else Color.White
+        Color.White
     )
 
     val composableScope = rememberCoroutineScope()
 
 
-    fun onButtonClick() {
+
+    fun onButtonClick(navigationRoute: String?) {
         composableScope.launch {
 
             launch {
@@ -165,6 +149,7 @@ fun MainScreen(navController: NavController) {
                         300
                     )
                 )
+
 
 
             }
@@ -190,10 +175,19 @@ fun MainScreen(navController: NavController) {
 
             }
             launch {
-                //delay(300)
-                menuState = when(menuState) {
-                    ViewSate.Closed -> ViewSate.Open
-                    else -> ViewSate.Closed
+
+                when(menuState) {
+                    ViewSate.Closed -> menuState = ViewSate.Open
+                    else -> {
+                        delay(300)
+                        navigationRoute?.let {
+                            Log.d("AnimatedMenu", "onMenuItemClick")
+                            navController.navigate(it)
+                        }?: kotlin.run {
+                            navController.navigate("welcome")
+                        }
+
+                    }
                 }
             }
 
@@ -201,107 +195,7 @@ fun MainScreen(navController: NavController) {
 
     }
 
-    fun onOpenFloatingCard() {
 
-        composableScope.launch {
-            launch {
-                bottomFloatingOffsetY.animateTo(
-                    targetValue = screenHeightInPx - bottomOffsetYInPx - 200f,
-                    tween(300)
-                )
-            }
-            launch {
-                delay(200)
-                bottomFloatingOffsetY.animateTo(
-                    targetValue = screenHeightInPx - bottomOffsetYInPx,
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMedium,
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-
-                    )
-                )
-
-            }
-
-            launch {
-                leftFloatingOffsetX.animateTo(
-                    targetValue = screenWidthInPx/2 - 200f,
-                    tween(300, delayMillis = 200)
-                )
-            }
-            launch {
-                delay(450)
-                leftFloatingOffsetX.animateTo(
-                    targetValue = screenWidthInPx/2,
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMedium,
-                        dampingRatio = Spring.DampingRatioMediumBouncy
-                    )
-                )
-
-
-            }
-
-        }
-        floatingMenuState = ViewSate.Open
-
-    }
-
-    fun onCloseFloatingCard() {
-//        composableScope.launch {
-//            launch {
-//                leftFloatingOffsetX.animateTo(
-//                    targetValue = screenWidthInPx/2 - 200f,
-//                    tween(300)
-//                )
-//            }
-//            launch {
-//                delay(350)
-//                leftFloatingOffsetX.animateTo(
-//                    targetValue = screenWidthInPx,
-//                    animationSpec = spring(
-//                        stiffness = Spring.StiffnessMedium,
-//                        dampingRatio = Spring.DampingRatioMediumBouncy
-//                    )
-//                )
-//
-//            }
-//
-//            launch {
-//                bottomFloatingOffsetY.animateTo(
-//                    targetValue = screenHeightInPx - bottomOffsetYInPx - 200f,
-//                    tween(200, delayMillis = 300)
-//
-//                )
-//            }
-//            launch {
-//                delay(650)
-//                onButtonClick()
-//                delay(50)
-//                bottomFloatingOffsetY.animateTo(
-//                    targetValue = screenHeightInPx,
-//                    animationSpec = spring(
-//                        stiffness = Spring.StiffnessMedium,
-//                        dampingRatio = Spring.DampingRatioMediumBouncy
-//                    )
-//
-//                )
-//
-//
-//            }
-//            launch {
-//                buttonOffsetY.animateTo(
-//                    targetValue = 0f,
-//                    tween(300, delayMillis = 700)
-//                )
-//                floatingMenuState = ViewSate.Closed
-//            }
-//
-//
-//
-//        }
-
-    }
 
 
     var menuItemName by rememberSaveable {
@@ -316,24 +210,27 @@ fun MainScreen(navController: NavController) {
         composableScope.launch {
             launch {
                 buttonOffsetY.animateTo(
-                    targetValue = -screenHeightInPx/2 + 250f,
+                    targetValue = -(screenHeightInPx/2 + buttonSizeInPx) + headerHeightInPx + buttonSizeInPx,
                     tween(250)
                 )
 
             }
-            delay(200)
-            launch {
-                onButtonClick()
-            }
-            //onOpenFloatingCard()
 
-            Log.d("AnimatedMenu", "onMenuItemClick")
-            navController.navigate("floatingmenu/${menuIcon}")
+            launch {
+                onButtonClick("card")
+            }
 
         }
 
     }
 
+
+    LaunchedEffect(menuState) {
+        if(menuState == ViewSate.Closed) {
+            delay(200)
+            onButtonClick(null)
+        }
+    }
 
 
 
@@ -342,35 +239,6 @@ fun MainScreen(navController: NavController) {
             .fillMaxSize()
             .background(color = backgroundColor)
     ) {
-
-
-        BottomFloatingCard(
-            modifier = Modifier
-                .offset {
-                    IntOffset(
-                        0,
-                        bottomFloatingOffsetY.value.toInt()
-                    )
-                },
-            onCloseFloatingCard = {
-                onCloseFloatingCard()
-            }
-        )
-
-        RightFloatingCard(modifier = Modifier
-                .offset {
-                    IntOffset(
-                        leftFloatingOffsetX.value.toInt(),
-                        leftFloatingOffsetY.value.toInt()
-                )
-
-            },
-            menuItemName,
-            menuIcon,
-            onCloseFloatingCard = {
-                onCloseFloatingCard()
-            }
-        )
 
 
 
@@ -445,105 +313,23 @@ fun MainScreen(navController: NavController) {
                 .align(Alignment.Center),
             menuState = menuState,
             onButtonClick = {
-                if(floatingMenuState == ViewSate.Open)
-                    onCloseFloatingCard()
-                else
-                    onButtonClick()
+                onButtonClick(null)
             }
         )
-
-        if(menuState == ViewSate.Closed) { // && floatingMenuState == ViewSate.Closed) {
-            Wordle()
-        }
-//        AnimatedSizedBox(modifier =
-//            Modifier.size(
-//                with(LocalDensity.current) {
-//                    animatedBoxContentSize.value.toDp()
-//                }
-//                )
-//                .align(Alignment.BottomEnd)
-//                .background(Color.Red)
-//                .clickable {
-//                    composableScope.launch {
-//                        animatedBoxContentSize.animateTo(
-//                            800f,
-//                            animationSpec = tween(
-//                                200
-//                            )
-//                        )
-//                    }
-//                }
-//        )
-
-//            Text("Welcome.",
-//                modifier = Modifier
-//                    .graphicsLayer {
-//                        scaleX = scale.value
-//                    }
-//                    .align(Alignment.TopCenter)
-//                    .padding(0.dp, 100.dp), color = colorResource(id = R.color.color_blue), textAlign = TextAlign.Center, style = TextStyle(letterSpacing = 6.sp, fontSize = 44.sp, fontWeight = FontWeight.Medium)
-//            )
-//            LaunchedEffect(menuState, floatingMenuState) {
-//                launch {
-//                    delay(200)
-//                    scale.animateTo(
-//                        1f,
-//                        animationSpec = spring(
-//                            stiffness = Spring.StiffnessHigh,
-//                            dampingRatio = Spring.DampingRatioMediumBouncy
-//                        )
-//                    )
-//                }
-//            }
-
 
 
     }
 
-
 }
 
-//@Composable
-//fun Main() {
-//    Column(
-//        modifier = Modifier.fillMaxSize()
-//    ){
-//
-//
-//        var isVisible by remember {
-//            mutableStateOf(true)
-//        }
-//
-//        if(!isVisible) {
-//            MainScreen()
-//        }
-//        else {
-//            Box(
-//
-//            ) {
-//                ListMenu()
-//                Header(
-//                    modifier = Modifier,
-//                    hasBackNavigation = true,
-//                    onButtonClick = {
-//                        isVisible = false
-//                    }
-//                )
-//            }
-//        }
-//
-//
-//
-//    }
-//
-//}
 
 
 
+@OptIn(ExperimentalAnimationApi::class)
 @Preview
 @Composable
 fun MainScreenPreview() {
-    val navController = rememberNavController()
+    val navController = rememberAnimatedNavController()
     MainScreen(navController)
 }
 

@@ -1,5 +1,6 @@
 package com.zgsbrgr.compose.anim
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +32,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.zgsbrgr.compose.anim.R
 import com.zgsbrgr.compose.anim.ui.OpenedEdge
 import com.zgsbrgr.compose.anim.ui.OpenedRectangleShape
@@ -40,40 +44,46 @@ import kotlinx.coroutines.launch
 data class ListMenuData(
     val id: Int,
     val icon: Int,
-    val name: String
+    val name: String,
+    val category: String
 )
 
 val menuList = listOf(
     ListMenuData(
         1,
         R.drawable.sledding_white_24dp,
-        "Sledding in Aspen"
+        "Sledding in Aspen",
+        "Sledding"
     ),
     ListMenuData(
         2,
         R.drawable.hiking_white_24dp,
-        "Hiking in the Alps"
+        "Hiking in the Alps",
+        "Hiking"
     ),
     ListMenuData(
         3,
         R.drawable.surfing_white_24dp,
-        "Surfing in France"
+        "Surfing in France",
+        "Surfing"
     ),
     ListMenuData(
         4,
         R.drawable.kitesurfing_white_24dp,
-        "Kite surfing in Dominica"
+        "Kite surfing in Dominica",
+        "Kite surfing"
     ),
     ListMenuData(
         5,
         R.drawable.scuba_diving_white_24dp,
-        "Scuba diving in Egypt"
+        "Scuba diving in Egypt",
+        "Scuba diving"
     ),
 
 )
 
 @Composable
-fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier) {
+fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier, onMenuItemClicked:(Int) -> Unit) {
     val blueColor = colorResource(id = R.color.color_blue)
     var boxHeight: Int = 0
     var boxWidth: Int = 0
@@ -125,19 +135,22 @@ fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier) {
                         launch {
                             overlayWidth.animateTo(
                                 boxWidth.toFloat(),
-                                animationSpec = infiniteRepeatable(
+                                animationSpec = repeatable(
+                                    2,
                                     animation = tween(
                                         durationMillis = 200,
                                         easing = FastOutSlowInEasing
                                     ), repeatMode = RepeatMode.Reverse
                                 )
                             )
+
                         }
                         if (item.first % 2 != 0) {
                             launch {
                                 offsetX.animateTo(
                                     targetValue = 0f,
-                                    animationSpec = infiniteRepeatable(
+                                    animationSpec = repeatable(
+                                        2,
                                         animation = tween(
                                             durationMillis = 200,
                                             easing = FastOutSlowInEasing
@@ -145,6 +158,10 @@ fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier) {
                                     )
                                 )
                             }
+                        }
+                        launch {
+                            delay(400)
+                            onMenuItemClicked(item.second.id)
                         }
                     }
                     clicked = !clicked
@@ -245,135 +262,170 @@ fun MenuTitle(modifier: Modifier, label: String) {
 }
 
 @Composable
-fun ListMenu() {
+fun ListMenu(navController: NavController) {
 
-    val (screenWidthInPx, screenHeight) = with(LocalConfiguration.current) {
+    val (screenWidthInPx, screenHeightInPx) = with(LocalConfiguration.current) {
         with(LocalDensity.current) {
             screenWidthDp.dp.toPx() to screenHeightDp.dp.toPx()
         }
     }
 
 
-    Column(modifier = Modifier
-        .padding(top = 150.dp)
-        .fillMaxSize()
-        .background(colorResource(id = R.color.color_dark))
 
-
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorResource(id = R.color.color_dark))
     ) {
 
-        val topOffset = remember {
-            Animatable(-300f)
-        }
-        val topOffset2 = remember {
-            Animatable(-300f)
-        }
 
-        val lefItemOffsetX = remember {
-            Animatable(-screenWidthInPx)
-        }
 
-        val rightItemOffsetX = remember {
-            Animatable(screenWidthInPx)
-        }
-
-        Row(
+        Column(modifier = Modifier
+            .padding(top = 200.dp)
+            .fillMaxSize()
+            .background(colorResource(id = R.color.color_dark))
 
         ) {
-            MenuTitle(
-                modifier = Modifier.offset {
-                    IntOffset(
-                        40,
-                        topOffset.value.toInt()
-                    )
-                }.alpha(0.6f),
-                label = "Outdoor")
-
-            MenuTitle(
-                modifier = Modifier.offset {
-                    IntOffset(
-                        70,
-                        topOffset2.value.toInt()
-                    )
-                }.alpha(0.6f),
-                label = "activities")
-        }
 
 
-        Column(
-            modifier = Modifier.padding(top = 30.dp)
-        ) {
-            for((index, value) in menuList.withIndex()) {
-                ListMenuItem(
-                    Pair(index, value),
+
+
+            val topOffset = remember {
+                Animatable(-300f)
+            }
+            val topOffset2 = remember {
+                Animatable(-300f)
+            }
+
+            val lefItemOffsetX = remember {
+                Animatable(-screenWidthInPx)
+            }
+
+            val rightItemOffsetX = remember {
+                Animatable(screenWidthInPx)
+            }
+
+            Row(
+
+            ) {
+                MenuTitle(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(
-                            end = if (index % 2 == 0) 30.dp else 0.dp,
-                            start = if (index % 2 == 0) 0.dp else 30.dp
-                        )
                         .offset {
                             IntOffset(
-                                if(index % 2 == 0) lefItemOffsetX.value.toInt() else rightItemOffsetX.value.toInt(), 0
+                                40,
+                                topOffset.value.toInt()
                             )
                         }
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-        }
+                        .alpha(0.6f),
+                    label = "Outdoor")
 
-        LaunchedEffect(topOffset) {
-            launch {
-                topOffset.animateTo(
-                    targetValue = 0f,
-                    tween(
-                        durationMillis = 200,
-                        delayMillis = 300,
-                        easing = LinearEasing
-                    )
-                )
+                MenuTitle(
+                    modifier = Modifier
+                        .offset {
+                            IntOffset(
+                                70,
+                                topOffset2.value.toInt()
+                            )
+                        }
+                        .alpha(0.6f),
+                    label = "activities")
+            }
 
-            }
-            launch {
-                topOffset2.animateTo(
-                    targetValue = 0f,
-                    tween(
-                        durationMillis = 200,
-                        delayMillis = 500,
-                        easing = LinearEasing
+
+            Column(
+                modifier = Modifier.padding(top = 30.dp)
+            ) {
+                for((index, value) in menuList.withIndex()) {
+                    ListMenuItem(
+                        Pair(index, value),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .padding(
+                                end = if (index % 2 == 0) 30.dp else 0.dp,
+                                start = if (index % 2 == 0) 0.dp else 30.dp
+                            )
+                            .offset {
+                                IntOffset(
+                                    if (index % 2 == 0) lefItemOffsetX.value.toInt() else rightItemOffsetX.value.toInt(),
+                                    0
+                                )
+                            },
+                        onMenuItemClicked = {
+                            navController.navigate("floatingmenu/${value.id}")
+                        }
                     )
-                )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
             }
-            for(i in 1..menuList.size) {
+
+            LaunchedEffect(topOffset) {
                 launch {
-                    lefItemOffsetX.animateTo(
+                    topOffset.animateTo(
                         targetValue = 0f,
-                        animationSpec = tween(500)
+                        tween(
+                            durationMillis = 200,
+                            delayMillis = 0,
+                            easing = LinearEasing
+                        )
                     )
-                    delay(200)
+
                 }
                 launch {
-                    rightItemOffsetX.animateTo(
+                    topOffset2.animateTo(
                         targetValue = 0f,
-                        animationSpec = tween(500)
+                        tween(
+                            durationMillis = 200,
+                            delayMillis = 200,
+                            easing = LinearEasing
+                        )
                     )
-                    delay(200)
                 }
+                for(i in 1..menuList.size) {
+                    launch {
+                        lefItemOffsetX.animateTo(
+                            targetValue = 0f,
+                            animationSpec = tween(500)
+                        )
+                        if(i > 1)
+                            delay(200)
+                    }
+                    launch {
+                        rightItemOffsetX.animateTo(
+                            targetValue = 0f,
+                            animationSpec = tween(500)
+                        )
+                        if(i > 1)
+                            delay(200)
+                    }
+                }
+
             }
+
+
+
 
         }
 
+        Header(
+            modifier = Modifier
+                .background(colorResource(id = R.color.color_dark))
+                .align(Alignment.TopCenter),
+            hasBackNavigation = true,
+            onButtonClick = {
 
-
-
+            }
+        )
     }
+
 
 
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Preview
 @Composable
 fun ListMenuPreview() {
-    ListMenu()
+    val navController = rememberAnimatedNavController()
+    ListMenu(navController)
 }

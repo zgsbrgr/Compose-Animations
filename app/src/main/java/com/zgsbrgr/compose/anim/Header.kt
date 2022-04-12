@@ -24,27 +24,25 @@ fun Header(modifier: Modifier, hasBackNavigation: Boolean, onButtonClick: () -> 
        modifier = modifier
            .fillMaxWidth()
            .requiredHeight(150.dp)
-           .background(
-               color = colorResource(
-                   id = R.color.color_dark
-               )
-           )
            .padding(start = 15.dp, end = 15.dp)
         ,
     )
     {
 
         MenuButton(modifier = Modifier.align(Alignment.Center), menuState = null, onButtonClick = onButtonClick)
-        Icon(
-            painter = painterResource(id = R.drawable.navigate_next_white_24dp),
-            contentDescription = "Navigate back icon",
-            modifier = Modifier
-                .size(35.dp)
-                .graphicsLayer {
-                    rotationY = 180f
-                }
-                .align(Alignment.CenterStart)
-        )
+        if(hasBackNavigation) {
+            Icon(
+                painter = painterResource(id = R.drawable.navigate_next_white_24dp),
+                contentDescription = "Navigate back icon",
+                modifier = Modifier
+                    .size(35.dp)
+                    .graphicsLayer {
+                        rotationY = 180f
+                    }
+                    .align(Alignment.CenterStart)
+            )
+        }
+
     }
 }
 

@@ -17,7 +17,10 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -32,6 +35,7 @@ import androidx.navigation.NavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import kotlin.math.hypot
 
 
 @Parcelize
@@ -40,6 +44,12 @@ data class FloatingMenuData(
     val icon: Int,
     val name: String
 ): Parcelable
+
+enum class FloatingCardViewState {
+    Open,
+    Close,
+    Closing
+}
 
 @Composable
 fun RightFloatingCard(modifier: Modifier, name: String, icon: Int, onCloseFloatingCard: () -> Unit) {
@@ -87,7 +97,7 @@ fun RightFloatingCard(modifier: Modifier, name: String, icon: Int, onCloseFloati
 }
 
 @Composable
-fun BottomFloatingCard(modifier: Modifier, onCloseFloatingCard: () -> Unit) {
+fun BottomFloatingCard(modifier: Modifier, label:String, onCloseFloatingCard: () -> Unit) {
 
     Card(
         modifier = modifier
@@ -115,7 +125,7 @@ fun BottomFloatingCard(modifier: Modifier, onCloseFloatingCard: () -> Unit) {
 
             ) {
             Text(
-                "Currency",
+                label,
                 textAlign = TextAlign.Center,
                 color = Color.Black, style = TextStyle(letterSpacing = 1.sp, fontSize = 35.sp, fontWeight = FontWeight.Medium)
             )
@@ -124,18 +134,21 @@ fun BottomFloatingCard(modifier: Modifier, onCloseFloatingCard: () -> Unit) {
 }
 
 @Composable
-fun FloatingCard(navController: NavController, menuIcon: Int) {
+fun FloatingCard(navController: NavController, itemId: Int) {
 
-    Log.d("FloatingCard", "called with ${menuIcon.toString()}")
+    Log.d("FloatingCard", "called with ${itemId.toString()}")
 
-    val menuItemName =
-        when(menuIcon) {
-            R.drawable.euro_symbol_white_24dp -> "Euro"
-            R.drawable.credit_card_off_white_24dp -> "Credit"
-            R.drawable.currency_exchange_white_24dp -> "Exchange"
-            R.drawable.switch_access_shortcut_add_white_24dp -> "Access"
-            else -> ""
-        }
+    val category = menuList.find {
+        it.id == itemId
+    }?.category!!
+
+    val menuIcon = menuList.find {
+        it.id == itemId
+    }?.icon!!
+
+    val name = menuList.find {
+        it.id == itemId
+    }?.name!!
 
     val (screenWidthInPx, screenHeightInPx) = with(LocalConfiguration.current) {
         with(LocalDensity.current) {
@@ -145,11 +158,11 @@ fun FloatingCard(navController: NavController, menuIcon: Int) {
 
 
     var floatingMenuState by remember {
-        mutableStateOf(ViewSate.Open)
+        mutableStateOf(FloatingCardViewState.Open)
     }
 
     val backgroundColor: Color by animateColorAsState(
-        if(floatingMenuState == ViewSate.Open) Color.Black else Color.White
+        if(floatingMenuState == FloatingCardViewState.Open || floatingMenuState == FloatingCardViewState.Closing) Color.Black else Color.White
     )
 
     val leftFloatingOffsetX = remember {
@@ -170,11 +183,36 @@ fun FloatingCard(navController: NavController, menuIcon: Int) {
         Animatable(screenHeightInPx + bottomOffsetYInPx)
     }
 
+    val buttonSizeInPx = with(LocalDensity.current) {
+        (65/2).dp.toPx()
+    }
 
+    val headerHeightInPx = with(LocalDensity.current) {
+        (150/2).dp.toPx()
+    }
+
+
+    val buttonOffsetY = remember {
+        Animatable(-screenHeightInPx/2 + buttonSizeInPx + 250f)
+    }
+
+    val headerOffsetY = remember {
+        Animatable(0f)
+    }
+    var radius by remember { mutableStateOf(0f) }
+    val animatedRadius = remember { Animatable(0f) }
+    val maxRadiusPx = hypot(screenWidthInPx, screenHeightInPx)
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = backgroundColor)
+            .background(color = Color.Black) // backgroundColor)
+            .drawBehind {
+                drawCircle(
+                    color = Color.White,
+                    radius = radius,
+                    center = Offset(screenWidthInPx/2, screenHeightInPx/2)
+                )
+            }
     ) {
 
 
@@ -186,8 +224,9 @@ fun FloatingCard(navController: NavController, menuIcon: Int) {
                         bottomFloatingOffsetY.value.toInt()
                     )
                 },
+            name,
             onCloseFloatingCard = {
-                floatingMenuState = ViewSate.Closed
+                floatingMenuState = FloatingCardViewState.Closing
             }
         )
 
@@ -199,103 +238,133 @@ fun FloatingCard(navController: NavController, menuIcon: Int) {
                 )
 
             },
-            menuItemName,
+            category,
             menuIcon,
             onCloseFloatingCard = {
-                floatingMenuState = ViewSate.Closed
+                floatingMenuState = FloatingCardViewState.Closing
             }
         )
+
+       Header(
+           modifier = Modifier
+               .offset {
+                   IntOffset(
+                       0,
+                       headerOffsetY.value.toInt()
+                   )
+               }
+               .align(Alignment.TopCenter)
+               .background(colorResource(id = android.R.color.transparent)),
+           hasBackNavigation = false,
+           onButtonClick = {
+
+           }
+       )
     }
     LaunchedEffect(floatingMenuState) {
-        if(floatingMenuState == ViewSate.Open) {
-            Log.d("FloatingCard", "called with open state")
-            launch {
-                bottomFloatingOffsetY.animateTo(
-                    targetValue = screenHeightInPx - bottomOffsetYInPx - 200f,
-                    tween(300)
-                )
-            }
-            launch {
-                delay(200)
-                bottomFloatingOffsetY.animateTo(
-                    targetValue = screenHeightInPx - bottomOffsetYInPx,
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMedium,
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
+        when (floatingMenuState) {
+            FloatingCardViewState.Open -> {
+                Log.d("FloatingCard", "called with open state")
+                launch {
+                    bottomFloatingOffsetY.animateTo(
+                        targetValue = screenHeightInPx - bottomOffsetYInPx - 200f,
+                        tween(300)
+                    )
+                }
+                launch {
+                    delay(200)
+                    bottomFloatingOffsetY.animateTo(
+                        targetValue = screenHeightInPx - bottomOffsetYInPx,
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessMedium,
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
 
+                            )
+                    )
+
+                }
+
+                launch {
+                    leftFloatingOffsetX.animateTo(
+                        targetValue = screenWidthInPx/2 - 200f,
+                        tween(300, delayMillis = 200)
+                    )
+                }
+                launch {
+                    delay(450)
+                    leftFloatingOffsetX.animateTo(
+                        targetValue = screenWidthInPx/2,
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessMedium,
+                            dampingRatio = Spring.DampingRatioMediumBouncy
                         )
-                )
-
-            }
-
-            launch {
-                leftFloatingOffsetX.animateTo(
-                    targetValue = screenWidthInPx/2 - 200f,
-                    tween(300, delayMillis = 200)
-                )
-            }
-            launch {
-                delay(450)
-                leftFloatingOffsetX.animateTo(
-                    targetValue = screenWidthInPx/2,
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMedium,
-                        dampingRatio = Spring.DampingRatioMediumBouncy
-                    )
-                )
-
-
-            }
-        }
-        else {
-            Log.d("FloatingCard", "called with closed state")
-            launch {
-                leftFloatingOffsetX.animateTo(
-                    targetValue = screenWidthInPx/2 - 200f,
-                    tween(300)
-                )
-            }
-            launch {
-                delay(350)
-                leftFloatingOffsetX.animateTo(
-                    targetValue = screenWidthInPx,
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMedium,
-                        dampingRatio = Spring.DampingRatioMediumBouncy
-                    )
-                )
-
-            }
-
-            launch {
-                bottomFloatingOffsetY.animateTo(
-                    targetValue = screenHeightInPx - bottomOffsetYInPx - 200f,
-                    tween(200, delayMillis = 300)
-
-                )
-            }
-            launch {
-                delay(650)
-                //onButtonClick()
-                delay(50)
-                bottomFloatingOffsetY.animateTo(
-                    targetValue = screenHeightInPx,
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMedium,
-                        dampingRatio = Spring.DampingRatioMediumBouncy
                     )
 
-                )
-                navController.navigateUp()
 
+                }
+            }
+            FloatingCardViewState.Closing -> {
+                launch {
+                    headerOffsetY.animateTo(
+                        targetValue = screenHeightInPx/2 - headerHeightInPx,
+                        tween(200, delayMillis = 500)
+                    )
+                }
+                launch {
+                    buttonOffsetY.animateTo(
+                        targetValue = -screenHeightInPx,
+                        tween(200)
+                    )
+                }
+                launch {
+                    leftFloatingOffsetX.animateTo(
+                        targetValue = screenWidthInPx/2 - 200f,
+                        tween(300)
+                    )
+                }
+                launch {
+                    delay(350)
+                    leftFloatingOffsetX.animateTo(
+                        targetValue = screenWidthInPx,
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessMedium,
+                            dampingRatio = Spring.DampingRatioMediumBouncy
+                        )
+                    )
+
+                }
+
+                launch {
+                    bottomFloatingOffsetY.animateTo(
+                        targetValue = screenHeightInPx - bottomOffsetYInPx - 200f,
+                        tween(200, delayMillis = 300)
+
+                    )
+                }
+                launch {
+                    delay(400)
+                    bottomFloatingOffsetY.animateTo(
+                        targetValue = screenHeightInPx + 50f,
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessMedium,
+                            dampingRatio = Spring.DampingRatioMediumBouncy
+                        )
+
+                    )
+                    floatingMenuState = FloatingCardViewState.Close
+
+                }
 
             }
-            launch {
-//                buttonOffsetY.animateTo(
-//                    targetValue = 0f,
-//                    tween(300, delayMillis = 700)
-//                )
-                floatingMenuState = ViewSate.Closed
+            else -> {
+                launch {
+                    animatedRadius.animateTo(maxRadiusPx, animationSpec = tween(300)) {
+                        radius = value
+                    }
+                    delay(300)
+                    navController.navigate("main")
+                }
+
 
             }
         }
