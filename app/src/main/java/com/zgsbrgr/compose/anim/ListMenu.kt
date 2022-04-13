@@ -138,7 +138,7 @@ fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier, onMenuItemCl
                                 animationSpec = repeatable(
                                     2,
                                     animation = tween(
-                                        durationMillis = 200,
+                                        durationMillis = 300,
                                         easing = FastOutSlowInEasing
                                     ), repeatMode = RepeatMode.Reverse
                                 )
@@ -152,7 +152,7 @@ fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier, onMenuItemCl
                                     animationSpec = repeatable(
                                         2,
                                         animation = tween(
-                                            durationMillis = 200,
+                                            durationMillis = 300,
                                             easing = FastOutSlowInEasing
                                         ), repeatMode = RepeatMode.Reverse
                                     )
@@ -160,7 +160,7 @@ fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier, onMenuItemCl
                             }
                         }
                         launch {
-                            delay(400)
+                            delay(600)
                             onMenuItemClicked(item.second.id)
                         }
                     }
@@ -262,7 +262,7 @@ fun MenuTitle(modifier: Modifier, label: String) {
 }
 
 @Composable
-fun ListMenu(navController: NavController) {
+fun ListMenu(onNavigation: (String?) -> Unit) {
 
     val (screenWidthInPx, screenHeightInPx) = with(LocalConfiguration.current) {
         with(LocalDensity.current) {
@@ -352,7 +352,7 @@ fun ListMenu(navController: NavController) {
                                 )
                             },
                         onMenuItemClicked = {
-                            navController.navigate("floatingmenu/${value.id}")
+                            onNavigation("floatingmenu/${value.id}")
                         }
                     )
                     Spacer(modifier = Modifier.height(20.dp))
@@ -413,7 +413,10 @@ fun ListMenu(navController: NavController) {
                 .align(Alignment.TopCenter),
             hasBackNavigation = true,
             onButtonClick = {
-
+                onNavigation("main")
+            },
+            onNavigateBack = {
+                onNavigation(null)
             }
         )
     }
@@ -426,6 +429,5 @@ fun ListMenu(navController: NavController) {
 @Preview
 @Composable
 fun ListMenuPreview() {
-    val navController = rememberAnimatedNavController()
-    ListMenu(navController)
+    ListMenu(onNavigation = {})
 }

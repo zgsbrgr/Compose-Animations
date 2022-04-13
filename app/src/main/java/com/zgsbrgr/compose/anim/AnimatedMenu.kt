@@ -81,11 +81,12 @@ fun MenuItem(menuItemPosition: MenuItemPosition, modifier: Modifier, onMenuItemC
 
 enum class ViewSate {
     Open,
-    Closed
+    Closed,
+    Navigate
 }
 
 @Composable
-fun MainScreen(navController: NavController) {
+fun MainScreen(onNavigation:(String) -> Unit) {
     Log.d("AnimatedMenu", "MainScreen called")
 
     val (screenWidthInPx, screenHeightInPx) = with(LocalConfiguration.current) {
@@ -182,9 +183,11 @@ fun MainScreen(navController: NavController) {
                         delay(300)
                         navigationRoute?.let {
                             Log.d("AnimatedMenu", "onMenuItemClick")
-                            navController.navigate(it)
+                            onNavigation(it)
+
                         }?: kotlin.run {
-                            navController.navigate("welcome")
+                            onNavigation("welcome")
+
                         }
 
                     }
@@ -329,8 +332,7 @@ fun MainScreen(navController: NavController) {
 @Preview
 @Composable
 fun MainScreenPreview() {
-    val navController = rememberAnimatedNavController()
-    MainScreen(navController)
+    MainScreen(onNavigation = {})
 }
 
 

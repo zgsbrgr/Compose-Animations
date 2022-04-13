@@ -7,13 +7,15 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +30,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -111,7 +114,7 @@ fun BottomFloatingCard(modifier: Modifier, label:String, onCloseFloatingCard: ()
 
 
         ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
@@ -121,20 +124,54 @@ fun BottomFloatingCard(modifier: Modifier, label:String, onCloseFloatingCard: ()
                         70.toDp()
                     }
                 ),
-            contentAlignment = Alignment.CenterStart,
-
-            ) {
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 label,
-                textAlign = TextAlign.Center,
-                color = Color.Black, style = TextStyle(letterSpacing = 1.sp, fontSize = 35.sp, fontWeight = FontWeight.Medium)
+                textAlign = TextAlign.Start,
+                color = Color.Black, style = TextStyle(letterSpacing = 1.sp, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold),
+                modifier = Modifier.weight(2f)
             )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxSize()
+                    .padding(bottom = 80.dp)
+                ,
+                contentAlignment = Alignment.BottomEnd
+            ) {
+                Button(
+                    modifier = Modifier
+                        .size(50.dp)
+
+                    ,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(id = R.color.white)),
+                    border = BorderStroke(1.dp, color = colorResource(id = R.color.transparent_dark2)),
+                    elevation = ButtonDefaults.elevation(
+                        defaultElevation = 0.dp,
+                        pressedElevation = 0.dp,
+                        disabledElevation = 0.dp
+                    ),
+                    shape = RoundedCornerShape(15.dp),
+                    onClick = {
+                        onCloseFloatingCard()
+                    }) {
+                        Icon(
+                            Icons.Default.Close, contentDescription = "Localized description", modifier = Modifier.size(40.dp), colorResource(
+                            id = R.color.color_dark
+                        ))
+                }
+            }
+
+
         }
+
     }
 }
 
 @Composable
-fun FloatingCard(navController: NavController, itemId: Int) {
+fun FloatingCard(itemId: Int, onNavigation: (String?) -> Unit) {
 
     Log.d("FloatingCard", "called with ${itemId.toString()}")
 
@@ -192,10 +229,6 @@ fun FloatingCard(navController: NavController, itemId: Int) {
     }
 
 
-    val buttonOffsetY = remember {
-        Animatable(-screenHeightInPx/2 + buttonSizeInPx + 250f)
-    }
-
     val headerOffsetY = remember {
         Animatable(0f)
     }
@@ -210,7 +243,7 @@ fun FloatingCard(navController: NavController, itemId: Int) {
                 drawCircle(
                     color = Color.White,
                     radius = radius,
-                    center = Offset(screenWidthInPx/2, screenHeightInPx/2)
+                    center = Offset(screenWidthInPx / 2, screenHeightInPx / 2)
                 )
             }
     ) {
@@ -257,7 +290,10 @@ fun FloatingCard(navController: NavController, itemId: Int) {
                .background(colorResource(id = android.R.color.transparent)),
            hasBackNavigation = false,
            onButtonClick = {
-
+               floatingMenuState = FloatingCardViewState.Closing
+           },
+           onNavigateBack = {
+               onNavigation(null)
            }
        )
     }
@@ -310,12 +346,7 @@ fun FloatingCard(navController: NavController, itemId: Int) {
                         tween(200, delayMillis = 500)
                     )
                 }
-                launch {
-                    buttonOffsetY.animateTo(
-                        targetValue = -screenHeightInPx,
-                        tween(200)
-                    )
-                }
+
                 launch {
                     leftFloatingOffsetX.animateTo(
                         targetValue = screenWidthInPx/2 - 200f,
@@ -362,7 +393,7 @@ fun FloatingCard(navController: NavController, itemId: Int) {
                         radius = value
                     }
                     delay(300)
-                    navController.navigate("main")
+                    onNavigation("main")
                 }
 
 
@@ -372,4 +403,10 @@ fun FloatingCard(navController: NavController, itemId: Int) {
     }
 
 
+}
+
+@Preview
+@Composable
+fun PreviewFloatingCard() {
+    FloatingCard(itemId = 1, onNavigation = {})
 }

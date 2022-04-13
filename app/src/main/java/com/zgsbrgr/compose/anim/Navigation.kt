@@ -30,28 +30,44 @@ fun Navigation() {
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None}
         ) {
-            Welcome(navController)
+            Welcome(onNavigation = {
+                navController.navigate(it)
+            })
         }
         composable(
             route = "main",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None}
         ) {
-            MainScreen(navController)
+            MainScreen(onNavigation = {
+                navController.navigate(it)
+            })
         }
         composable(
             route = "card",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None}
         ) {
-            CardMenu(navController)
+            CardMenu(onNavigation = {
+                it?.let { route->
+                    navController.navigate(route)
+                }?: run {
+                    navController.navigateUp()
+                }
+            })
         }
         composable(
             route = "list",
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None}
         ) {
-            ListMenu(navController)
+            ListMenu(onNavigation = {
+                it?.let { route->
+                    navController.navigate(route)
+                }?: run {
+                    navController.navigateUp()
+                }
+            })
         }
         composable(
             route = "floatingmenu/{itemId}",
@@ -59,7 +75,13 @@ fun Navigation() {
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None}
         ) { backStackEntry->
-            FloatingCard(navController, itemId = backStackEntry.arguments?.getInt("itemId")!!)
+            FloatingCard(itemId = backStackEntry.arguments?.getInt("itemId")!!, onNavigation = {
+                it?.let { route->
+                    navController.navigate(route)
+                }?: run {
+                    navController.navigateUp()
+                }
+            })
         }
 
     }

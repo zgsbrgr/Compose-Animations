@@ -3,6 +3,8 @@ package com.zgsbrgr.compose.anim
 
 import android.util.Log
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -31,7 +33,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -78,6 +82,21 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
         Animatable(screenWidthInPx/2f)
     }
 
+    val leftIconOffsetX = remember {
+        Animatable(-200f)
+    }
+
+    val rightIconOffsetX = remember {
+        Animatable(200f)
+    }
+    val leftIconRotation = remember {
+        Animatable(-60f)
+    }
+
+    val rightIconRotation = remember {
+        Animatable(60f)
+    }
+
     LaunchedEffect(leftCardXOffset) {
         launch {
             leftCardXOffset.animateTo(
@@ -95,6 +114,43 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
                 animationSpec = tween(
                     200,
                     100
+                )
+            )
+        }
+        launch {
+            leftIconOffsetX.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(
+                    300,
+                    100
+                )
+            )
+
+        }
+        launch {
+            rightIconOffsetX.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(
+                    300,
+                    200
+                )
+            )
+        }
+        launch {
+            leftIconRotation.animateTo(
+                targetValue = 0f,
+                animationSpec = spring(
+                    stiffness = Spring.StiffnessMedium,
+                    dampingRatio = Spring.DampingRatioHighBouncy,
+                )
+            )
+        }
+        launch {
+            rightIconRotation.animateTo(
+                targetValue = 0f,
+                animationSpec = spring(
+                    stiffness = Spring.StiffnessMedium,
+                    dampingRatio = Spring.DampingRatioHighBouncy,
                 )
             )
         }
@@ -167,7 +223,17 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
                             Icon(
                                 painter = painterResource(id = cardMenuDataList[index].icon),
                                 contentDescription = "Localized description",
-                                Modifier.size(35.dp),
+                                Modifier
+                                    .size(35.dp)
+                                    .offset {
+                                        IntOffset(
+                                            if (index % 2 == 0) leftIconOffsetX.value.toInt() else rightIconOffsetX.value.toInt(),
+                                            0
+                                        )
+                                    }
+                                    .rotate(
+                                        if (index % 2 == 0) leftIconRotation.value else rightIconRotation.value
+                                    ),
                                 colorResource(id = R.color.color_coral)
 
                             )
@@ -203,7 +269,7 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
 
 
 @Composable
-fun CardMenu(navController: NavController) {
+fun CardMenu(onNavigation:(String?) -> Unit) {
 
     var radius by remember { mutableStateOf(0f) }
     val darkColor = colorResource(id = R.color.color_dark)
@@ -227,39 +293,75 @@ fun CardMenu(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.purplish))
-            .drawBehind {
-                drawCircle(
-                    color = darkColor,
-                    radius = radius,
-                    center = offset
-                )
-            }
-
-        ,
+            .background(colorResource(id = R.color.white)),
 
         contentAlignment = Alignment.BottomCenter
 
     ) {
 
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset {
+                    IntOffset(
+                        -(width / 4).toInt(),
+                        0
+                    )
+                }
+                .background(colorResource(id = R.color.purplish))
+
+        )
+        // circular reveal
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colorResource(id = android.R.color.transparent))
+                .drawBehind {
+                    drawCircle(
+                        color = darkColor,
+                        radius = radius,
+                        center = offset
+                    )
+                }
+        )
         Header(
-            modifier = Modifier.background(colorResource(id = android.R.color.transparent)).align(Alignment.TopCenter),
+            modifier = Modifier
+                .background(colorResource(id = android.R.color.transparent))
+                .align(Alignment.TopCenter),
             hasBackNavigation = false,
             onButtonClick = {
-
+                onNavigation("main")
+            },
+            onNavigateBack = {
+                onNavigation(null)
             }
         )
         if(animatedRadius.value < maxRadiusPx) {
-            CardGrid(
-                width.toInt(),
-                onCardMenuItemClick = {
-                    it.second?.let { positionOfClickedItem->
-                        offset = positionOfClickedItem
-                    }
-                    clicked = !clicked
+            Column {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, bottom = 30.dp)
+                ) {
+                    Text(
+                        "Card menu",
+                        textAlign = TextAlign.Start,
+                        color = colorResource(id = R.color.color_dark), style = TextStyle(letterSpacing = 2.sp, fontSize = 28.sp, fontWeight = FontWeight.Bold),
 
+                        )
                 }
-            )
+                CardGrid(
+                    width.toInt(),
+                    onCardMenuItemClick = {
+                        it.second?.let { positionOfClickedItem->
+                            offset = positionOfClickedItem
+                        }
+                        clicked = !clicked
+
+                    }
+                )
+
+            }
+
+
         }
 
     }
@@ -269,7 +371,8 @@ fun CardMenu(navController: NavController) {
             animatedRadius.animateTo(maxRadiusPx, animationSpec = tween(300)) {
                 radius = value
             }
-            navController.navigate("list")
+            onNavigation("list")
+
             //animatedRadius.snapTo(0f)
         }
     }
@@ -279,6 +382,5 @@ fun CardMenu(navController: NavController) {
 @Preview
 @Composable
 fun CardMenuPreview() {
-    val navController = rememberNavController()
-    CardMenu(navController)
+    CardMenu(onNavigation = {})
 }

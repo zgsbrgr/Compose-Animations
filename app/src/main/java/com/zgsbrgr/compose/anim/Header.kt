@@ -2,10 +2,12 @@ package com.zgsbrgr.compose.anim
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.Composable
@@ -19,7 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Header(modifier: Modifier, hasBackNavigation: Boolean, onButtonClick: () -> Unit) {
+fun Header(modifier: Modifier, hasBackNavigation: Boolean, onButtonClick: () -> Unit, onNavigateBack: () -> Unit) {
     Box(
        modifier = modifier
            .fillMaxWidth()
@@ -40,6 +42,9 @@ fun Header(modifier: Modifier, hasBackNavigation: Boolean, onButtonClick: () -> 
                         rotationY = 180f
                     }
                     .align(Alignment.CenterStart)
+                    .clickable {
+                        onNavigateBack()
+                    }
             )
         }
 
@@ -62,18 +67,20 @@ fun MenuButton(modifier: Modifier, menuState: ViewSate?, onButtonClick: () -> Un
             disabledElevation = 0.dp
         ),
         shape = MaterialTheme.shapes.medium,
-        border = BorderStroke(5.dp, color = colorResource(id = R.color.transparent_dark)),
+        border = BorderStroke(5.dp, color = colorResource(id = R.color.transparent_dark2)),
         onClick = {
             onButtonClick()
         }
     ) {
         val icon = menuState?.let {
-            if(it == ViewSate.Closed)
-                Icons.Default.Menu
-            else
-                Icons.Default.Close
+            when(it) {
+                ViewSate.Closed -> Icons.Default.Menu
+                ViewSate.Open -> Icons.Default.Close
+                ViewSate.Navigate -> Icons.Default.ArrowForward
+            }
+
         }?:Icons.Default.Menu
-        Icon(icon, contentDescription = "Localized description", Modifier.size(35.dp), colorResource(
+        Icon(icon, contentDescription = "Localized description", Modifier.size(25.dp), colorResource(
             id = R.color.color_blue
         ))
 
@@ -92,6 +99,9 @@ fun PreviewHeader() {
         modifier = Modifier,
         true,
         onButtonClick = {
+
+        },
+        onNavigateBack = {
 
         }
     )

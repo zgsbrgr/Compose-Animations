@@ -13,5 +13,6 @@
 
     <color name="purplish">#f9f9fb</color>
     <color name="transparent_dark">#80201e30</color>
+    <color name="transparent_dark2">#10201e30</color>
 
 </resources>
