@@ -44,7 +44,8 @@ fun Header(modifier: Modifier, hasBackNavigation: Boolean, onButtonClick: () -> 
                     .align(Alignment.CenterStart)
                     .clickable {
                         onNavigateBack()
-                    }
+                    },
+                colorResource(id = android.R.color.white)
             )
         }
 
