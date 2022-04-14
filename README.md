@@ -10,4 +10,4 @@ Some basic animated menu implementations with the help of coroutines to chain th
 <img src="/art/flow.gif" width="360">
 
 ## Credits
-Idea for the design from <a href="https://dribbble.com/ui_migulko">Taras Migulko</a>
+Design idea from <a href="https://dribbble.com/ui_migulko">Taras Migulko</a>
