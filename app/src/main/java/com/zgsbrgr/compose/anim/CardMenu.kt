@@ -269,6 +269,9 @@ fun CardMenu(categoryId: Int, onNavigation:(String?) -> Unit) {
         mutableStateOf(false)
     }
 
+    var categoryName = sports.find {
+        it.categoryId == categoryId
+    }?.name+" sports"
 
     Box(
         modifier = Modifier
@@ -322,7 +325,7 @@ fun CardMenu(categoryId: Int, onNavigation:(String?) -> Unit) {
                     modifier = Modifier.fillMaxWidth().padding(start = 20.dp, bottom = 30.dp)
                 ) {
                     Text(
-                        "Sports & activities",
+                        categoryName.replaceFirstChar { it.uppercase() },
                         textAlign = TextAlign.Start,
                         color = colorResource(id = R.color.color_dark), style = TextStyle(letterSpacing = 2.sp, fontSize = 28.sp, fontWeight = FontWeight.Bold),
 

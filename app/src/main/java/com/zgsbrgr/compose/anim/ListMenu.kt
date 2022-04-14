@@ -282,7 +282,7 @@ fun ListMenu(categoryId: Int, onNavigation: (String?) -> Unit) {
                             )
                         }
                         .alpha(0.6f),
-                    label = "Outdoor")
+                    label = categoryName!!.replaceFirstChar { it.uppercase() })
 
                 MenuTitle(
                     modifier = Modifier
@@ -293,7 +293,7 @@ fun ListMenu(categoryId: Int, onNavigation: (String?) -> Unit) {
                             )
                         }
                         .alpha(0.6f),
-                    label = "activities")
+                    label = "sports")
             }
 
 

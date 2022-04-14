@@ -218,6 +218,9 @@ fun FloatingCard(categoryName: String, itemId: Int, onNavigation: (String?) -> U
         (150/2).dp.toPx()
     }
 
+    var backNavigationVisibility by remember {
+        mutableStateOf(true)
+    }
 
     val headerOffsetY = remember {
         Animatable(0f)
@@ -278,7 +281,7 @@ fun FloatingCard(categoryName: String, itemId: Int, onNavigation: (String?) -> U
                }
                .align(Alignment.TopCenter)
                .background(colorResource(id = android.R.color.transparent)),
-           hasBackNavigation = false,
+           hasBackNavigation = backNavigationVisibility,
            onButtonClick = {
                floatingMenuState = FloatingCardViewState.Closing
            },
@@ -331,6 +334,7 @@ fun FloatingCard(categoryName: String, itemId: Int, onNavigation: (String?) -> U
             }
             FloatingCardViewState.Closing -> {
                 launch {
+                    backNavigationVisibility = !backNavigationVisibility
                     headerOffsetY.animateTo(
                         targetValue = screenHeightInPx/2 - headerHeightInPx,
                         tween(200, delayMillis = 500)
