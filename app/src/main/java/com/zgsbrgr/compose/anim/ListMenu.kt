@@ -2,9 +2,7 @@ package com.zgsbrgr.compose.anim
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
@@ -155,7 +153,9 @@ fun ListMenuItem(item: Pair<Int, SportsData>, modifier: Modifier, onMenuItemClic
                         }
                         centerVerticallyTo(parent)
                     }
-                    .alpha(0.6f)
+                    .alpha(0.6f),
+                colorResource(id = android.R.color.white)
+
             )
 
             Text(
@@ -196,7 +196,8 @@ fun ListMenuItem(item: Pair<Int, SportsData>, modifier: Modifier, onMenuItemClic
                         }
                         centerVerticallyTo(parent)
                     }
-                    .alpha(0.6f)
+                    .alpha(0.6f),
+                colorResource(id = android.R.color.white)
 
             )
 
@@ -298,7 +299,9 @@ fun ListMenu(categoryId: Int, onNavigation: (String?) -> Unit) {
 
 
             Column(
-                modifier = Modifier.padding(top = 30.dp)
+                modifier = Modifier
+                    .padding(top = 30.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 for((index, value) in sportsInCategory!!.withIndex()) {
                     ListMenuItem(
