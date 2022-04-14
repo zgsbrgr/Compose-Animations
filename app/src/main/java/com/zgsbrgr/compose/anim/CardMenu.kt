@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -138,13 +139,14 @@ fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<S
 
 
     LazyVerticalGrid(
+
         columns = GridCells.Fixed(2),
         // content padding
         contentPadding = PaddingValues(
             start = 0.dp,
             top = 0.dp,
-            end = 0.dp,
-            bottom = 0.dp
+            end = 10.dp,
+            bottom = 10.dp
         ),
         content = {
             items(sportsInCategory!!.size) { index ->
@@ -160,10 +162,10 @@ fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<S
                             start = if (index % 2 == 0) 0.dp else 10.dp,
                             end = if (index % 2 == 0) 10.dp else 0.dp,
                             top = 10.dp,
-                            bottom = if (index == sportsInCategory.size - 1 || index == sportsInCategory.size - 2) 0.dp else 10.dp
+                            bottom = 10.dp
                         )
                         .fillMaxWidth()
-                        .height(180.dp)
+                        .requiredHeightIn(min = 100.dp, max = 180.dp)
                         .onGloballyPositioned {
                             offsetPosition =
                                 Offset(it.positionInWindow().x, it.positionInWindow().y)
@@ -189,7 +191,7 @@ fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<S
                             .fillMaxSize()
                             .padding(start = 20.dp),
 
-                    ) {
+                        ) {
                         Box(
                             Modifier
                                 .fillMaxSize()
@@ -244,6 +246,7 @@ fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<S
             }
         }
     )
+
 }
 
 
@@ -269,7 +272,7 @@ fun CardMenu(categoryId: Int, onNavigation:(String?) -> Unit) {
         mutableStateOf(false)
     }
 
-    var categoryName = sports.find {
+    val categoryName = sports.find {
         it.categoryId == categoryId
     }?.name+" sports"
 
@@ -307,46 +310,52 @@ fun CardMenu(categoryId: Int, onNavigation:(String?) -> Unit) {
                     )
                 }
         )
-        Header(
-            modifier = Modifier
-                .background(colorResource(id = android.R.color.transparent))
-                .align(Alignment.TopCenter),
-            hasBackNavigation = false,
-            onButtonClick = {
-                onNavigation("main")
-            },
-            onNavigateBack = {
-                onNavigation(null)
-            }
-        )
-        if(animatedRadius.value < maxRadiusPx) {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, bottom = 30.dp)
-                ) {
-                    Text(
-                        categoryName.replaceFirstChar { it.uppercase() },
-                        textAlign = TextAlign.Start,
-                        color = colorResource(id = R.color.color_dark), style = TextStyle(letterSpacing = 2.sp, fontSize = 28.sp, fontWeight = FontWeight.Bold),
-
-                        )
+        Column(modifier = Modifier.fillMaxSize()) {
+            Header(
+                modifier = Modifier
+                    .background(colorResource(id = android.R.color.transparent))
+                    .fillMaxWidth(),
+                    //.align(Alignment.TopCenter),
+                hasBackNavigation = false,
+                onButtonClick = {
+                    onNavigation("main")
+                },
+                onNavigateBack = {
+                    onNavigation(null)
                 }
-                CardGrid(
-                    categoryId,
-                    width.toInt(),
-                    onCardMenuItemClick = {
-                        it.second?.let { positionOfClickedItem->
-                            offset = positionOfClickedItem
-                        }
-                        clicked = !clicked
+            )
+            if(animatedRadius.value < maxRadiusPx) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 20.dp, bottom = 30.dp)
+                    ) {
+                        Text(
+                            categoryName.replaceFirstChar { it.uppercase() },
+                            textAlign = TextAlign.Start,
+                            color = colorResource(id = R.color.color_dark), style = TextStyle(letterSpacing = 2.sp, fontSize = 28.sp, fontWeight = FontWeight.Bold),
 
+                            )
                     }
-                )
+                    CardGrid(
+                        categoryId,
+                        width.toInt(),
+                        onCardMenuItemClick = {
+                            it.second?.let { positionOfClickedItem->
+                                offset = positionOfClickedItem
+                            }
+                            clicked = !clicked
+
+                        }
+                    )
+
+                }
+
 
             }
-
-
         }
+
 
     }
 
