@@ -98,18 +98,12 @@ fun MainScreen(onNavigation:(String) -> Unit) {
         (screenWidthInPx/2).toDp() to (screenHeightInPx/2).toDp()
     }
 
+    val (leftOffsetX, rightOffsetX) = remember {
+        Animatable(-screenWidthInPx/2) to Animatable(screenWidthInPx)
+    }
 
-    val leftOffsetX = remember {
-        Animatable(-screenWidthInPx/2)
-    }
-    val rightOffsetX = remember {
-        Animatable(screenWidthInPx)
-    }
-    val topOffsetY = remember {
-       Animatable(-screenHeightInPx/2)
-    }
-    val bottomOffsetY = remember {
-        Animatable(screenHeightInPx)
+    val (topOffsetY, bottomOffsetY) = remember {
+        Animatable(-screenHeightInPx/2) to Animatable(screenHeightInPx)
     }
 
     val buttonOffsetY = remember {

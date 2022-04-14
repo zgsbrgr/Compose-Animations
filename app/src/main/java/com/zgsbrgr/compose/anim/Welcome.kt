@@ -34,23 +34,16 @@ fun Welcome(onNavigation:(String) -> Unit) {
 
     val transition = updateTransition(targetState = enabled, label = "")
 
-    val started = remember {
-        mutableStateOf(false)
-    }
 
     var isVisible by remember { mutableStateOf(false) }
 
-
-
-    LaunchedEffect(started) {
-        launch {
-            delay(300)
-            enabled = !enabled
-            delay(4000)
-            isVisible = !isVisible
-            delay(400)
-            onNavigation("main")
-        }
+    LaunchedEffect(true) {
+        delay(300)
+        enabled = !enabled
+        delay(4000)
+        isVisible = !isVisible
+        delay(400)
+        onNavigation("main")
     }
 
 

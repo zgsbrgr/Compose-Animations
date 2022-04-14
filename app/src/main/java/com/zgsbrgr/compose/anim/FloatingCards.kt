@@ -176,6 +176,10 @@ fun FloatingCard(categoryName: String, itemId: Int, onNavigation: (String?) -> U
 
     assert(sport != null)
 
+    var floatingMenuState by remember {
+        mutableStateOf(FloatingCardViewState.Open)
+    }
+
 
     val (screenWidthInPx, screenHeightInPx) = with(LocalConfiguration.current) {
         with(LocalDensity.current) {
@@ -183,48 +187,35 @@ fun FloatingCard(categoryName: String, itemId: Int, onNavigation: (String?) -> U
         }
     }
 
-
-    var floatingMenuState by remember {
-        mutableStateOf(FloatingCardViewState.Open)
-    }
-
-    val backgroundColor: Color by animateColorAsState(
-        if(floatingMenuState == FloatingCardViewState.Open || floatingMenuState == FloatingCardViewState.Closing) Color.Black else Color.White
-    )
-
-    val leftFloatingOffsetX = remember {
-        Animatable(screenWidthInPx)
-    }
-
     val offsetYInPx = with(LocalDensity.current) {
         200.dp.toPx()
-    }
-    val leftFloatingOffsetY = remember {
-        Animatable(screenHeightInPx - offsetYInPx - screenHeightInPx/4)
     }
 
     val bottomOffsetYInPx = with(LocalDensity.current) {
         230.dp.toPx()
-    }
-    val bottomFloatingOffsetY = remember {
-        Animatable(screenHeightInPx + bottomOffsetYInPx)
-    }
-
-    val buttonSizeInPx = with(LocalDensity.current) {
-        (65/2).dp.toPx()
     }
 
     val headerHeightInPx = with(LocalDensity.current) {
         (150/2).dp.toPx()
     }
 
-    var backNavigationVisibility by remember {
-        mutableStateOf(true)
+    val (leftFloatingOffsetX, leftFloatingOffsetY) = remember {
+        Animatable(screenWidthInPx) to Animatable(screenHeightInPx - offsetYInPx - screenHeightInPx/4)
+    }
+
+    val bottomFloatingOffsetY = remember {
+        Animatable(screenHeightInPx + bottomOffsetYInPx)
     }
 
     val headerOffsetY = remember {
         Animatable(0f)
     }
+
+    var backNavigationVisibility by remember {
+        mutableStateOf(true)
+    }
+
+
     var radius by remember { mutableStateOf(0f) }
     val animatedRadius = remember { Animatable(0f) }
     val maxRadiusPx = hypot(screenWidthInPx, screenHeightInPx)

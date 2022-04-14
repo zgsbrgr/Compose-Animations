@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -49,26 +48,16 @@ import kotlin.math.hypot
 @Composable
 fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<SportsData, Offset?>) -> Unit) {
 
-    val leftCardXOffset = remember {
-        Animatable(-screenWidthInPx/2f)
-    }
-    val rightCardXOffset = remember {
-        Animatable(screenWidthInPx/2f)
+    val (leftCardOffsetX, rightCardOffsetX) = remember {
+        Animatable(-screenWidthInPx/2f) to Animatable(screenWidthInPx/2f)
     }
 
-    val leftIconOffsetX = remember {
-        Animatable(-200f)
+    val (leftIconOffsetX, rightIconOffsetX) = remember {
+        Animatable(-200f) to Animatable(200f)
     }
 
-    val rightIconOffsetX = remember {
-        Animatable(200f)
-    }
-    val leftIconRotation = remember {
-        Animatable(-60f)
-    }
-
-    val rightIconRotation = remember {
-        Animatable(60f)
+    val (leftIconRotation, rightIconRotation) = remember {
+        Animatable(-60f) to Animatable(60f)
     }
 
     val sportsInCategory = sports.find {
@@ -77,9 +66,9 @@ fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<S
 
     assert(sportsInCategory != null)
 
-    LaunchedEffect(leftCardXOffset) {
+    LaunchedEffect(leftCardOffsetX) {
         launch {
-            leftCardXOffset.animateTo(
+            leftCardOffsetX.animateTo(
                 targetValue = 0f,
                 animationSpec = tween(
                     200,
@@ -89,7 +78,7 @@ fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<S
 
         }
         launch {
-            rightCardXOffset.animateTo(
+            rightCardOffsetX.animateTo(
                 targetValue = 0f,
                 animationSpec = tween(
                     200,
@@ -176,7 +165,7 @@ fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<S
                         }
                         .offset {
                             IntOffset(
-                                if (index % 2 == 0) leftCardXOffset.value.toInt() else rightCardXOffset.value.toInt(),
+                                if (index % 2 == 0) leftCardOffsetX.value.toInt() else rightCardOffsetX.value.toInt(),
                                 0
                             )
                         }
