@@ -1,21 +1,15 @@
 package com.zgsbrgr.compose.anim
 
-import android.util.Log
+
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.google.accompanist.navigation.animation.navigation
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -44,38 +38,40 @@ fun Navigation() {
             })
         }
         composable(
-            route = "card",
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None}
-        ) {
-            CardMenu(onNavigation = {
-                it?.let { route->
-                    navController.navigate(route)
-                }?: run {
-                    navController.navigateUp()
-                }
-            })
-        }
-        composable(
-            route = "list",
-            enterTransition = { EnterTransition.None },
-            exitTransition = { ExitTransition.None}
-        ) {
-            ListMenu(onNavigation = {
-                it?.let { route->
-                    navController.navigate(route)
-                }?: run {
-                    navController.navigateUp()
-                }
-            })
-        }
-        composable(
-            route = "floatingmenu/{itemId}",
-            arguments = listOf(navArgument("itemId") { type = NavType.IntType }),
+            route = "card/{categoryId}",
+            arguments = listOf(navArgument("categoryId") { type = NavType.IntType }),
             enterTransition = { EnterTransition.None },
             exitTransition = { ExitTransition.None}
         ) { backStackEntry->
-            FloatingCard(itemId = backStackEntry.arguments?.getInt("itemId")!!, onNavigation = {
+            CardMenu(categoryId = backStackEntry.arguments?.getInt("categoryId")!!, onNavigation = {
+                it?.let { route->
+                    navController.navigate(route)
+                }?: run {
+                    navController.navigateUp()
+                }
+            })
+        }
+        composable(
+            route = "list/{categoryId}",
+            arguments = listOf(navArgument("categoryId") { type = NavType.IntType }),
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None}
+        ) { backStackEntry->
+            ListMenu(categoryId = backStackEntry.arguments?.getInt("categoryId")!!, onNavigation = {
+                it?.let { route->
+                    navController.navigate(route)
+                }?: run {
+                    navController.navigateUp()
+                }
+            })
+        }
+        composable(
+            route = "floatingmenu/{categoryName}/{itemId}",
+            arguments = listOf(navArgument("categoryName") { type = NavType.StringType }, navArgument("itemId") { type = NavType.IntType }),
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None}
+        ) { backStackEntry->
+            FloatingCard(categoryName = backStackEntry.arguments?.getString("categoryName")!!, itemId = backStackEntry.arguments?.getInt("itemId")!!, onNavigation = {
                 it?.let { route->
                     navController.navigate(route)
                 }?: run {

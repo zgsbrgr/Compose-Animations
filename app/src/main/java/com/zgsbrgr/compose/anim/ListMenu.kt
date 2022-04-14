@@ -18,7 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
@@ -28,62 +27,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
-import com.zgsbrgr.compose.anim.R
+import com.zgsbrgr.compose.anim.data.SportsData
+import com.zgsbrgr.compose.anim.data.sports
 import com.zgsbrgr.compose.anim.ui.OpenedEdge
 import com.zgsbrgr.compose.anim.ui.OpenedRectangleShape
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-data class ListMenuData(
-    val id: Int,
-    val icon: Int,
-    val name: String,
-    val category: String
-)
-
-val menuList = listOf(
-    ListMenuData(
-        1,
-        R.drawable.sledding_white_24dp,
-        "Sledding in Aspen",
-        "Sledding"
-    ),
-    ListMenuData(
-        2,
-        R.drawable.hiking_white_24dp,
-        "Hiking in the Alps",
-        "Hiking"
-    ),
-    ListMenuData(
-        3,
-        R.drawable.surfing_white_24dp,
-        "Surfing in France",
-        "Surfing"
-    ),
-    ListMenuData(
-        4,
-        R.drawable.kitesurfing_white_24dp,
-        "Kite surfing in Dominica",
-        "Kite surfing"
-    ),
-    ListMenuData(
-        5,
-        R.drawable.scuba_diving_white_24dp,
-        "Scuba diving in Egypt",
-        "Scuba diving"
-    ),
-
-)
 
 @Composable
-fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier, onMenuItemClicked:(Int) -> Unit) {
+fun ListMenuItem(item: Pair<Int, SportsData>, modifier: Modifier, onMenuItemClicked:(Int) -> Unit) {
     val blueColor = colorResource(id = R.color.color_blue)
     var boxHeight: Int = 0
     var boxWidth: Int = 0
@@ -203,7 +159,7 @@ fun ListMenuItem(item: Pair<Int, ListMenuData>, modifier: Modifier, onMenuItemCl
             )
 
             Text(
-                item.second.name,
+                item.second.name.replaceFirstChar { it.uppercase() },
                 textAlign = TextAlign.Center,
                 color = Color.White, style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.W800),
                 modifier = Modifier
@@ -262,7 +218,7 @@ fun MenuTitle(modifier: Modifier, label: String) {
 }
 
 @Composable
-fun ListMenu(onNavigation: (String?) -> Unit) {
+fun ListMenu(categoryId: Int, onNavigation: (String?) -> Unit) {
 
     val (screenWidthInPx, screenHeightInPx) = with(LocalConfiguration.current) {
         with(LocalDensity.current) {
@@ -270,6 +226,17 @@ fun ListMenu(onNavigation: (String?) -> Unit) {
         }
     }
 
+    val sportsInCategory = sports.find {
+        it.categoryId == categoryId
+    }?.sports
+
+    val categoryName = sports.find {
+        it.categoryId == categoryId
+    }?.name
+
+    assert(sportsInCategory != null)
+
+    assert(categoryName != null)
 
 
     Box(
@@ -281,13 +248,11 @@ fun ListMenu(onNavigation: (String?) -> Unit) {
 
 
         Column(modifier = Modifier
-            .padding(top = 200.dp)
+            .padding(top = 150.dp)
             .fillMaxSize()
             .background(colorResource(id = R.color.color_dark))
 
         ) {
-
-
 
 
             val topOffset = remember {
@@ -335,7 +300,7 @@ fun ListMenu(onNavigation: (String?) -> Unit) {
             Column(
                 modifier = Modifier.padding(top = 30.dp)
             ) {
-                for((index, value) in menuList.withIndex()) {
+                for((index, value) in sportsInCategory!!.withIndex()) {
                     ListMenuItem(
                         Pair(index, value),
                         modifier = Modifier
@@ -352,7 +317,7 @@ fun ListMenu(onNavigation: (String?) -> Unit) {
                                 )
                             },
                         onMenuItemClicked = {
-                            onNavigation("floatingmenu/${value.id}")
+                            onNavigation("floatingmenu/${categoryName}/${value.id}")
                         }
                     )
                     Spacer(modifier = Modifier.height(20.dp))
@@ -381,7 +346,7 @@ fun ListMenu(onNavigation: (String?) -> Unit) {
                         )
                     )
                 }
-                for(i in 1..menuList.size) {
+                for(i in 1..sports.size) {
                     launch {
                         lefItemOffsetX.animateTo(
                             targetValue = 0f,
@@ -429,5 +394,5 @@ fun ListMenu(onNavigation: (String?) -> Unit) {
 @Preview
 @Composable
 fun ListMenuPreview() {
-    ListMenu(onNavigation = {})
+    ListMenu(1, onNavigation = {})
 }

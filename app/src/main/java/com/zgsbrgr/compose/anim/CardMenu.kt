@@ -1,7 +1,5 @@
 package com.zgsbrgr.compose.anim
 
-
-import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -9,9 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
-
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.Card
@@ -23,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -33,47 +28,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.*
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.IntOffset
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.zgsbrgr.compose.anim.data.SportsData
+import com.zgsbrgr.compose.anim.data.sports
 import kotlinx.coroutines.launch
 import kotlin.math.hypot
 
-data class CardMenuData(
-    val id: Int,
-    val name: String,
-    val icon: Int
-)
-
-val cardMenuDataList = listOf(
-    CardMenuData(1, "Plastic", R.drawable.credit_card_off_white_24dp),
-    CardMenuData(2, "Disposable\ntableware", R.drawable.currency_exchange_white_24dp),
-    CardMenuData(3, "Paper and\ncardboard", R.drawable.euro_symbol_white_24dp),
-    CardMenuData(4, "Glass", R.drawable.switch_access_shortcut_add_white_24dp),
-    CardMenuData(5, "Metal", R.drawable.credit_card_off_white_24dp),
-    CardMenuData(6, "Tetra Pak", R.drawable.euro_symbol_white_24dp)
-)
-
-@Composable
-fun CardMenuItem(item: CardMenuData, modifier: Modifier, onCardMenuItemClick: (CardMenuData) -> Unit) {
 
 
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offset?>) -> Unit) {
+fun CardGrid(categoryId: Int, screenWidthInPx: Int, onCardMenuItemClick: (Pair<SportsData, Offset?>) -> Unit) {
 
     val leftCardXOffset = remember {
         Animatable(-screenWidthInPx/2f)
@@ -96,6 +69,12 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
     val rightIconRotation = remember {
         Animatable(60f)
     }
+
+    val sportsInCategory = sports.find {
+        it.categoryId == categoryId
+    }?.sports
+
+    assert(sportsInCategory != null)
 
     LaunchedEffect(leftCardXOffset) {
         launch {
@@ -168,7 +147,7 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
             bottom = 0.dp
         ),
         content = {
-            items(cardMenuDataList.size) { index ->
+            items(sportsInCategory!!.size) { index ->
                 var clicked by remember {
                     mutableStateOf(false)
                 }
@@ -181,7 +160,7 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
                             start = if (index % 2 == 0) 0.dp else 10.dp,
                             end = if (index % 2 == 0) 10.dp else 0.dp,
                             top = 10.dp,
-                            bottom = if (index == cardMenuDataList.size - 1 || index == cardMenuDataList.size - 2) 0.dp else 10.dp
+                            bottom = if (index == sportsInCategory.size - 1 || index == sportsInCategory.size - 2) 0.dp else 10.dp
                         )
                         .fillMaxWidth()
                         .height(180.dp)
@@ -191,7 +170,7 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
                         }
                         .clickable {
                             clicked = true
-                            onCardMenuItemClick(Pair(cardMenuDataList[index], offsetPosition))
+                            onCardMenuItemClick(Pair(sportsInCategory[index], offsetPosition))
                         }
                         .offset {
                             IntOffset(
@@ -221,7 +200,7 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
 
                         ) {
                             Icon(
-                                painter = painterResource(id = cardMenuDataList[index].icon),
+                                painter = painterResource(id = sportsInCategory[index].icon),
                                 contentDescription = "Localized description",
                                 Modifier
                                     .size(35.dp)
@@ -247,7 +226,7 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
                             contentAlignment = Alignment.TopStart
                         ) {
                             Text(
-                                text = cardMenuDataList[index].name,
+                                text = sportsInCategory[index].name.replaceFirstChar { it.uppercase() },
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 24.sp,
                                 color = if(clicked) Color.White else Color.Black,
@@ -269,7 +248,7 @@ fun CardGrid(screenWidthInPx: Int, onCardMenuItemClick: (Pair<CardMenuData, Offs
 
 
 @Composable
-fun CardMenu(onNavigation:(String?) -> Unit) {
+fun CardMenu(categoryId: Int, onNavigation:(String?) -> Unit) {
 
     var radius by remember { mutableStateOf(0f) }
     val darkColor = colorResource(id = R.color.color_dark)
@@ -289,6 +268,7 @@ fun CardMenu(onNavigation:(String?) -> Unit) {
     var clicked by remember {
         mutableStateOf(false)
     }
+
 
     Box(
         modifier = Modifier
@@ -342,13 +322,14 @@ fun CardMenu(onNavigation:(String?) -> Unit) {
                     modifier = Modifier.fillMaxWidth().padding(start = 20.dp, bottom = 30.dp)
                 ) {
                     Text(
-                        "Card menu",
+                        "Sports & activities",
                         textAlign = TextAlign.Start,
                         color = colorResource(id = R.color.color_dark), style = TextStyle(letterSpacing = 2.sp, fontSize = 28.sp, fontWeight = FontWeight.Bold),
 
                         )
                 }
                 CardGrid(
+                    categoryId,
                     width.toInt(),
                     onCardMenuItemClick = {
                         it.second?.let { positionOfClickedItem->
@@ -371,7 +352,7 @@ fun CardMenu(onNavigation:(String?) -> Unit) {
             animatedRadius.animateTo(maxRadiusPx, animationSpec = tween(300)) {
                 radius = value
             }
-            onNavigation("list")
+            onNavigation("list/$categoryId")
 
             //animatedRadius.snapTo(0f)
         }
@@ -382,5 +363,5 @@ fun CardMenu(onNavigation:(String?) -> Unit) {
 @Preview
 @Composable
 fun CardMenuPreview() {
-    CardMenu(onNavigation = {})
+    CardMenu(1, onNavigation = {})
 }

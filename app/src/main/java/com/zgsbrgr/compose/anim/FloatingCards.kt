@@ -35,18 +35,12 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.zgsbrgr.compose.anim.data.sports
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 import kotlin.math.hypot
 
-
-@Parcelize
-data class FloatingMenuData(
-    val id: Int,
-    val icon: Int,
-    val name: String
-): Parcelable
 
 enum class FloatingCardViewState {
     Open,
@@ -87,7 +81,7 @@ fun RightFloatingCard(modifier: Modifier, name: String, icon: Int, onCloseFloati
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    name,
+                    name.replaceFirstChar { it.uppercase() },
                     textAlign = TextAlign.Center,
                     color = Color.White, style = TextStyle(letterSpacing = 2.sp, fontSize = 25.sp, fontWeight = FontWeight.Medium)
                 )
@@ -128,7 +122,7 @@ fun BottomFloatingCard(modifier: Modifier, label:String, onCloseFloatingCard: ()
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                label,
+                label.replaceFirstChar { it.uppercase() },
                 textAlign = TextAlign.Start,
                 color = Color.Black, style = TextStyle(letterSpacing = 1.sp, fontSize = 30.sp, fontWeight = FontWeight.ExtraBold),
                 modifier = Modifier.weight(2f)
@@ -171,21 +165,17 @@ fun BottomFloatingCard(modifier: Modifier, label:String, onCloseFloatingCard: ()
 }
 
 @Composable
-fun FloatingCard(itemId: Int, onNavigation: (String?) -> Unit) {
+fun FloatingCard(categoryName: String, itemId: Int, onNavigation: (String?) -> Unit) {
 
-    Log.d("FloatingCard", "called with ${itemId.toString()}")
 
-    val category = menuList.find {
+    val sport = sports.find {
+        it.name == categoryName
+    }?.sports?.find {
         it.id == itemId
-    }?.category!!
+    }
 
-    val menuIcon = menuList.find {
-        it.id == itemId
-    }?.icon!!
+    assert(sport != null)
 
-    val name = menuList.find {
-        it.id == itemId
-    }?.name!!
 
     val (screenWidthInPx, screenHeightInPx) = with(LocalConfiguration.current) {
         with(LocalDensity.current) {
@@ -257,7 +247,7 @@ fun FloatingCard(itemId: Int, onNavigation: (String?) -> Unit) {
                         bottomFloatingOffsetY.value.toInt()
                     )
                 },
-            name,
+            sport!!.name,
             onCloseFloatingCard = {
                 floatingMenuState = FloatingCardViewState.Closing
             }
@@ -271,8 +261,8 @@ fun FloatingCard(itemId: Int, onNavigation: (String?) -> Unit) {
                 )
 
             },
-            category,
-            menuIcon,
+            sport.category,
+            sport.icon,
             onCloseFloatingCard = {
                 floatingMenuState = FloatingCardViewState.Closing
             }
@@ -408,5 +398,5 @@ fun FloatingCard(itemId: Int, onNavigation: (String?) -> Unit) {
 @Preview
 @Composable
 fun PreviewFloatingCard() {
-    FloatingCard(itemId = 1, onNavigation = {})
+    FloatingCard(categoryName = "team", itemId = 1, onNavigation = {})
 }

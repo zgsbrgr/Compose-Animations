@@ -27,9 +27,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.toUpperCase
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
+import com.zgsbrgr.compose.anim.data.sports
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -43,7 +45,7 @@ enum class MenuItemPosition {
 
 
 @Composable
-fun MenuItem(menuItemPosition: MenuItemPosition, modifier: Modifier, onMenuItemClicked: (MenuItemPosition) -> Unit) {
+fun MenuItem(menuItemPosition: MenuItemPosition, label: String, modifier: Modifier, onMenuItemClicked: (MenuItemPosition) -> Unit) {
 
 
     var isPressed by remember {
@@ -53,7 +55,10 @@ fun MenuItem(menuItemPosition: MenuItemPosition, modifier: Modifier, onMenuItemC
     CompositionLocalProvider(LocalIndication provides rememberRipple(color = Color.Black)) {
         Box(
             modifier = modifier
-                .background(color = colorResource(id = R.color.color_blue), RectangleShape)
+                .background(
+                    color = colorResource(id = if (!isPressed) R.color.color_blue else R.color.color_dark_blue),
+                    RectangleShape
+                )
                 .clickable(
                     onClick = {
                         isPressed = !isPressed
@@ -64,12 +69,7 @@ fun MenuItem(menuItemPosition: MenuItemPosition, modifier: Modifier, onMenuItemC
             ) {
 
             Text(
-                when(menuItemPosition) {
-                    MenuItemPosition.TOP_LEFT -> "euro".uppercase()
-                    MenuItemPosition.TOP_RIGHT -> "credit".uppercase()
-                    MenuItemPosition.BOTTOM_LEFT -> "exchange".uppercase()
-                    MenuItemPosition.BOTTOM_RIGHT -> "access".uppercase()
-                },
+                label.uppercase(),
                 modifier = Modifier.align(Alignment.Center), color = Color.White, textAlign = TextAlign.Center, style = TextStyle(letterSpacing = 10.sp, fontSize = 16.sp, fontWeight = FontWeight.Light)
             )
 
@@ -87,7 +87,6 @@ enum class ViewSate {
 
 @Composable
 fun MainScreen(onNavigation:(String) -> Unit) {
-    Log.d("AnimatedMenu", "MainScreen called")
 
     val (screenWidthInPx, screenHeightInPx) = with(LocalConfiguration.current) {
         with(LocalDensity.current) {
@@ -182,7 +181,6 @@ fun MainScreen(onNavigation:(String) -> Unit) {
                     else -> {
                         delay(300)
                         navigationRoute?.let {
-                            Log.d("AnimatedMenu", "onMenuItemClick")
                             onNavigation(it)
 
                         }?: kotlin.run {
@@ -199,18 +197,9 @@ fun MainScreen(onNavigation:(String) -> Unit) {
     }
 
 
-
-
-    var menuItemName by rememberSaveable {
-        mutableStateOf("")
-    }
-
-    var menuIcon by rememberSaveable {
-        mutableStateOf(R.drawable.credit_card_off_white_24dp)
-    }
-
-    fun onMenuItemClick() {
+    fun onMenuItemClick(categoryId: Int) {
         composableScope.launch {
+            delay(200)
             launch {
                 buttonOffsetY.animateTo(
                     targetValue = -(screenHeightInPx/2 + buttonSizeInPx) + headerHeightInPx + buttonSizeInPx,
@@ -220,7 +209,7 @@ fun MainScreen(onNavigation:(String) -> Unit) {
             }
 
             launch {
-                onButtonClick("card")
+                onButtonClick("card/${categoryId}")
             }
 
         }
@@ -228,8 +217,8 @@ fun MainScreen(onNavigation:(String) -> Unit) {
     }
 
 
-    LaunchedEffect(menuState) {
-        if(menuState == ViewSate.Closed) {
+    if(menuState == ViewSate.Closed) {
+        LaunchedEffect(key1 = menuState ) {
             delay(200)
             onButtonClick(null)
         }
@@ -245,7 +234,7 @@ fun MainScreen(onNavigation:(String) -> Unit) {
 
 
 
-        MenuItem(menuItemPosition = MenuItemPosition.TOP_LEFT, modifier = Modifier
+        MenuItem(menuItemPosition = MenuItemPosition.TOP_LEFT, sports[0].name, modifier = Modifier
             .offset {
                 IntOffset(
                     leftOffsetX.value.toInt(),
@@ -254,15 +243,13 @@ fun MainScreen(onNavigation:(String) -> Unit) {
             }
             .size(boxWidth, boxHeight),
             onMenuItemClicked = {
-                menuItemName = "Euro"
-                menuIcon = R.drawable.euro_symbol_white_24dp
-                onMenuItemClick()
+                onMenuItemClick(sports[0].categoryId)
             }
         )
 
 
 
-        MenuItem(menuItemPosition = MenuItemPosition.TOP_RIGHT, modifier = Modifier
+        MenuItem(menuItemPosition = MenuItemPosition.TOP_RIGHT, sports[1].name, modifier = Modifier
             .offset {
                 IntOffset(
                     rightOffsetX.value.toInt(),
@@ -271,14 +258,12 @@ fun MainScreen(onNavigation:(String) -> Unit) {
             }
             .size(boxWidth, boxHeight),
             onMenuItemClicked = {
-                menuItemName = "Credit"
-                menuIcon = R.drawable.credit_card_off_white_24dp
-                onMenuItemClick()
+                onMenuItemClick(sports[1].categoryId)
             }
 
         )
 
-        MenuItem(menuItemPosition = MenuItemPosition.BOTTOM_LEFT, modifier = Modifier
+        MenuItem(menuItemPosition = MenuItemPosition.BOTTOM_LEFT, sports[2].name, modifier = Modifier
             .offset {
                 IntOffset(
                     leftOffsetX.value.toInt(),
@@ -287,14 +272,12 @@ fun MainScreen(onNavigation:(String) -> Unit) {
             }
             .size(boxWidth, boxHeight),
             onMenuItemClicked = {
-                menuItemName = "Exchange"
-                menuIcon = R.drawable.currency_exchange_white_24dp
-                onMenuItemClick()
+                onMenuItemClick(sports[2].categoryId)
             }
         )
 
 
-        MenuItem(menuItemPosition = MenuItemPosition.BOTTOM_RIGHT, modifier = Modifier
+        MenuItem(menuItemPosition = MenuItemPosition.BOTTOM_RIGHT, sports[3].name, modifier = Modifier
             .offset {
                 IntOffset(
                     rightOffsetX.value.toInt(),
@@ -303,9 +286,7 @@ fun MainScreen(onNavigation:(String) -> Unit) {
             }
             .size(boxWidth, boxHeight),
             onMenuItemClicked = {
-                menuItemName = "Access"
-                menuIcon = R.drawable.switch_access_shortcut_add_white_24dp
-                onMenuItemClick()
+                onMenuItemClick(sports[3].categoryId)
             }
 
         )
